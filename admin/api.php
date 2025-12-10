@@ -67,14 +67,18 @@ switch ($action) {
         $whereConditions = [];
         $params = [];
         
-        // Construir condiciones WHERE dinámicamente
-        if (!empty($search)) {
-            $whereConditions[] = "(CONCAT(u.nombre, ' ', u.apellido) LIKE :search 
-                                 OR u.cedula LIKE :search 
-                                 OR l.titulo LIKE :search 
-                                 OR l.codigo_unico LIKE :search 
-                                 OR l.autor LIKE :search)";
-            $params[':search'] = '%' . $search . '%';
+       if (!empty($search)) {
+            $whereConditions[] = "(CONCAT(u.nombre, ' ', u.apellido) LIKE :search_nombre 
+                                 OR u.cedula LIKE :search_cedula 
+                                 OR l.titulo LIKE :search_titulo 
+                                 OR l.codigo_unico LIKE :search_codigo 
+                                 OR l.autor LIKE :search_autor)";
+            $searchParam = '%' . $search . '%';
+            $params[':search_nombre'] = $searchParam;
+            $params[':search_cedula'] = $searchParam;
+            $params[':search_titulo'] = $searchParam;
+            $params[':search_codigo'] = $searchParam;
+            $params[':search_autor'] = $searchParam;
         }
         
         if (!empty($estado)) {
@@ -142,12 +146,14 @@ switch ($action) {
         $whereConditions = [];
         $params = [];
         
-        // Construir condiciones WHERE dinámicamente
-        if (!empty($search)) {
-            $whereConditions[] = "(CONCAT(u.nombre, ' ', u.apellido) LIKE :search 
-                                 OR u.cedula LIKE :search 
-                                 OR c.numero LIKE :search)";
-            $params[':search'] = '%' . $search . '%';
+      if (!empty($search)) {
+            $whereConditions[] = "(CONCAT(u.nombre, ' ', u.apellido) LIKE :search_nombre 
+                                 OR u.cedula LIKE :search_cedula 
+                                 OR c.numero LIKE :search_numero)";
+            $searchParam = '%' . $search . '%';
+            $params[':search_nombre'] = $searchParam;
+            $params[':search_cedula'] = $searchParam;
+            $params[':search_numero'] = $searchParam;
         }
         
         if (!empty($fecha)) {
@@ -213,12 +219,19 @@ case 'get_usuarios':
     $params = [];
     
     if (!empty($search)) {
-        // CORREGIDO: Eliminada referencia a facultad_externa
-        $whereConditions[] = "(CONCAT(u.nombre, ' ', u.apellido) LIKE :search 
-                             OR u.cedula LIKE :search 
-                             OR a.nombre_afiliacion LIKE :search
-                             OR ued.universidad_externa LIKE :search)";
-        $params[':search'] = '%' . $search . '%';
+      // CÓDIGO NUEVO (Correcto para múltiples usos)
+$whereConditions[] = "(CONCAT(u.nombre, ' ', u.apellido) LIKE :search_nombre
+                     OR u.cedula LIKE :search_cedula
+                     OR a.nombre_afiliacion LIKE :search_afiliacion
+                     OR ued.universidad_externa LIKE :search_universidad)";
+        // CÓDIGO NUEVO (Correcto)
+
+    $searchParam = "%{$search}%";
+    $params[':search_nombre'] = $searchParam;
+    $params[':search_cedula'] = $searchParam;
+    $params[':search_afiliacion'] = $searchParam;
+    $params[':search_universidad'] = $searchParam;
+
     }
     
     if (!empty($tipo_usuario)) {
@@ -260,11 +273,21 @@ case 'get_usuarios':
               ORDER BY u.fecha_registro DESC, u.id_usuario DESC
               $limitClause";
                 
+    try {
     $stmt = $conn->prepare($query);
     $stmt->execute($params);
     $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
     echo json_encode($usuarios);
-    break;
+
+} catch (PDOException $e) {
+    // Si la consulta falla, ahora devolverás el error SQL como JSON
+    http_response_code(500); 
+    echo json_encode([
+        'error' => 'Error en la consulta SQL',
+        'detalle' => $e->getMessage() // <-- ESTO ES LO QUE NECESITAMOS VER
+    ]);
+}
+break;
 
 
 // ===== NUEVOS ENDPOINTS DE ESTADÍSTICAS CORREGIDOS =====
@@ -771,254 +794,468 @@ case 'get_usuarios':
         break;
 
 
-        case 'get_all_stats':
-        $fecha_inicio = $_GET['fecha_inicio'] ?? '';
-        $fecha_fin = $_GET['fecha_fin'] ?? '';
-        
-        $params = [];
-        $whereConditions = [];
-        
-        if (!empty($fecha_inicio)) {
+   case 'get_all_stats':
+    // Log para debugging
+    error_log("get_all_stats llamado con fecha_inicio: " . ($_GET['fecha_inicio'] ?? 'ninguna'));
+    error_log("get_all_stats llamado con fecha_fin: " . ($_GET['fecha_fin'] ?? 'ninguna'));
+    
+    $fecha_inicio = $_GET['fecha_inicio'] ?? '';
+    $fecha_fin = $_GET['fecha_fin'] ?? '';
+    
+    // ====================================================================
+    // 1. KPIs
+    // ====================================================================
+    
+    $whereConditions = [];
+    $params = [];
+    
+    if (!empty($fecha_inicio)) {
+        $fechaInicioObj = DateTime::createFromFormat('Y-m-d', $fecha_inicio);
+        if ($fechaInicioObj && $fechaInicioObj->format('Y-m-d') === $fecha_inicio) {
             $whereConditions[] = "fecha >= :fecha_inicio";
-            $params[':fecha_inicio'] = $fecha_inicio;
+            $params[':fecha_inicio'] = $fecha_inicio . ' 00:00:00';
         }
-        
-        if (!empty($fecha_fin)) {
+    }
+    
+    if (!empty($fecha_fin)) {
+        $fechaFinObj = DateTime::createFromFormat('Y-m-d', $fecha_fin);
+        if ($fechaFinObj && $fechaFinObj->format('Y-m-d') === $fecha_fin) {
             $whereConditions[] = "fecha <= :fecha_fin";
             $params[':fecha_fin'] = $fecha_fin . ' 23:59:59';
         }
-        
-        $whereClauseGeneral = !empty($whereConditions) ? 'WHERE ' . implode(' AND ', $whereConditions) : '';
-        
-        // --- 1. KPIs ---
-        $queryLibros = "SELECT COUNT(*) as total FROM reservalibro $whereClauseGeneral";
-        $stmtLibros = $conn->prepare($queryLibros);
-        $stmtLibros->execute($params);
-        $totalLibros = $stmtLibros->fetch(PDO::FETCH_ASSOC)['total'];
+    }
+    
+    $whereClauseGeneral = !empty($whereConditions) ? 'WHERE ' . implode(' AND ', $whereConditions) : '';
+    
+    $queryLibros = "SELECT COUNT(*) as total FROM reservalibro $whereClauseGeneral";
+    $stmtLibros = $conn->prepare($queryLibros);
+    $stmtLibros->execute($params);
+    $totalLibros = $stmtLibros->fetch(PDO::FETCH_ASSOC)['total'];
 
-        $queryPcs = "SELECT COUNT(*) as total FROM reservacomputadora $whereClauseGeneral";
-        $stmtPcs = $conn->prepare($queryPcs);
-        $stmtPcs->execute($params);
-        $totalPcs = $stmtPcs->fetch(PDO::FETCH_ASSOC)['total'];
+    $queryPcs = "SELECT COUNT(*) as total FROM reservacomputadora $whereClauseGeneral";
+    $stmtPcs = $conn->prepare($queryPcs);
+    $stmtPcs->execute($params);
+    $totalPcs = $stmtPcs->fetch(PDO::FETCH_ASSOC)['total'];
 
-        $queryUsuarios = "SELECT COUNT(DISTINCT id_usuario) as total 
-                          FROM (
-                              SELECT id_usuario, fecha FROM reservalibro $whereClauseGeneral
-                              UNION
-                              SELECT id_usuario, fecha FROM reservacomputadora $whereClauseGeneral
-                          ) as reservas";
-        $stmtUsuarios = $conn->prepare($queryUsuarios);
-        $stmtUsuarios->execute(array_merge($params, $params));
-        $usuariosActivos = $stmtUsuarios->fetch(PDO::FETCH_ASSOC)['total'];
-        
-        $dataKPIs = [
-            'total_reservas' => (int)$totalLibros + (int)$totalPcs,
-            'total_libros' => (int)$totalLibros,
-            'total_pcs' => (int)$totalPcs,
-            'usuarios_activos' => (int)$usuariosActivos
-        ];
+    // CORREGIDO: Usuarios activos con placeholders únicos
+    $whereConditionsLibros = [];
+    $whereConditionsPcs = [];
+    $paramsUsuarios = [];
+    
+    if (!empty($fecha_inicio)) {
+        $whereConditionsLibros[] = "fecha >= :fecha_inicio_lib";
+        $whereConditionsPcs[] = "fecha >= :fecha_inicio_pc";
+        $paramsUsuarios[':fecha_inicio_lib'] = $fecha_inicio . ' 00:00:00';
+        $paramsUsuarios[':fecha_inicio_pc'] = $fecha_inicio . ' 00:00:00';
+    }
+    
+    if (!empty($fecha_fin)) {
+        $whereConditionsLibros[] = "fecha <= :fecha_fin_lib";
+        $whereConditionsPcs[] = "fecha <= :fecha_fin_pc";
+        $paramsUsuarios[':fecha_fin_lib'] = $fecha_fin . ' 23:59:59';
+        $paramsUsuarios[':fecha_fin_pc'] = $fecha_fin . ' 23:59:59';
+    }
+    
+    $whereLibros = !empty($whereConditionsLibros) ? 'WHERE ' . implode(' AND ', $whereConditionsLibros) : '';
+    $wherePcs = !empty($whereConditionsPcs) ? 'WHERE ' . implode(' AND ', $whereConditionsPcs) : '';
+    
+    $queryUsuarios = "SELECT COUNT(DISTINCT id_usuario) as total 
+                      FROM (
+                          SELECT id_usuario FROM reservalibro $whereLibros
+                          UNION
+                          SELECT id_usuario FROM reservacomputadora $wherePcs
+                      ) as reservas";
+    $stmtUsuarios = $conn->prepare($queryUsuarios);
+    $stmtUsuarios->execute($paramsUsuarios);
+    $usuariosActivos = $stmtUsuarios->fetch(PDO::FETCH_ASSOC)['total'];
+    
+    $dataKPIs = [
+        'total_reservas' => (int)$totalLibros + (int)$totalPcs,
+        'total_libros' => (int)$totalLibros,
+        'total_pcs' => (int)$totalPcs,
+        'usuarios_activos' => (int)$usuariosActivos
+    ];
 
-        // --- 2. USO GENERAL ---
-        $queryLibros = "SELECT DATE(fecha) as dia, COUNT(*) as total 
-                        FROM reservalibro 
-                        $whereClauseGeneral 
-                        GROUP BY dia ORDER BY dia ASC";
-        $stmtLibros = $conn->prepare($queryLibros);
-        $stmtLibros->execute($params);
-        $librosDataRaw = $stmtLibros->fetchAll(PDO::FETCH_ASSOC);
-        $librosData = [];
-        foreach ($librosDataRaw as $row) $librosData[$row['dia']] = (int)$row['total'];
+    // ====================================================================
+    // 2. USO GENERAL
+    // ====================================================================
+    
+    $queryLibros = "SELECT DATE(fecha) as dia, COUNT(*) as total 
+                    FROM reservalibro 
+                    $whereClauseGeneral 
+                    GROUP BY dia ORDER BY dia ASC";
+    $stmtLibros = $conn->prepare($queryLibros);
+    $stmtLibros->execute($params);
+    $librosDataRaw = $stmtLibros->fetchAll(PDO::FETCH_ASSOC);
+    
+    $librosData = [];
+    foreach ($librosDataRaw as $row) {
+        $librosData[$row['dia']] = (int)$row['total'];
+    }
 
-        $queryPcs = "SELECT DATE(fecha) as dia, COUNT(*) as total 
-                     FROM reservacomputadora 
-                     $whereClauseGeneral 
-                     GROUP BY dia ORDER BY dia ASC";
-        $stmtPcs = $conn->prepare($queryPcs);
-        $stmtPcs->execute($params);
-        $pcsDataRaw = $stmtPcs->fetchAll(PDO::FETCH_ASSOC);
-        $pcsData = [];
-        foreach ($pcsDataRaw as $row) $pcsData[$row['dia']] = (int)$row['total'];
+    $queryPcs = "SELECT DATE(fecha) as dia, COUNT(*) as total 
+                 FROM reservacomputadora 
+                 $whereClauseGeneral 
+                 GROUP BY dia ORDER BY dia ASC";
+    $stmtPcs = $conn->prepare($queryPcs);
+    $stmtPcs->execute($params);
+    $pcsDataRaw = $stmtPcs->fetchAll(PDO::FETCH_ASSOC);
+    
+    $pcsData = [];
+    foreach ($pcsDataRaw as $row) {
+        $pcsData[$row['dia']] = (int)$row['total'];
+    }
 
-        $inicio = new DateTime($fecha_inicio ?: '30 days ago');
-        $fin = new DateTime($fecha_fin ?: 'now');
-        $intervalo = new DateInterval('P1D');
-        $periodo = new DatePeriod($inicio, $intervalo, $fin->modify('+1 day'));
-        $labels = []; $dataLibros = []; $dataPcs = [];
-        foreach ($periodo as $fecha) {
-            $diaStr = $fecha->format('Y-m-d');
-            $labels[] = $diaStr;
-            $dataLibros[] = $librosData[$diaStr] ?? 0;
-            $dataPcs[] = $pcsData[$diaStr] ?? 0;
-        }
-        $dataGeneral = [
-            'labels' => $labels,
-            'libros' => $dataLibros,
-            'computadoras' => $dataPcs
-        ];
+    $inicio = new DateTime($fecha_inicio ?: '30 days ago');
+    $fin = new DateTime($fecha_fin ?: 'now');
+    $intervalo = new DateInterval('P1D');
+    $periodo = new DatePeriod($inicio, $intervalo, $fin->modify('+1 day'));
+    
+    $labels = [];
+    $dataLibros = [];
+    $dataPcs = [];
+    
+    foreach ($periodo as $fecha) {
+        $diaStr = $fecha->format('Y-m-d');
+        $labels[] = $diaStr;
+        $dataLibros[] = $librosData[$diaStr] ?? 0;
+        $dataPcs[] = $pcsData[$diaStr] ?? 0;
+    }
+    
+    $dataGeneral = [
+        'labels' => $labels,
+        'libros' => $dataLibros,
+        'computadoras' => $dataPcs
+    ];
 
-        // --- Definir WHERE clauses específicos para tablas con alias ---
-        $whereClauseRL = str_replace('fecha', 'rl.fecha', $whereClauseGeneral);
-        $whereClauseRC = str_replace('fecha', 'rc.fecha', $whereClauseGeneral);
-        $whereClauseUnion = str_replace('fecha', 't.fecha', $whereClauseGeneral);
+    // ====================================================================
+    // 3. TOP LIBROS
+    // ====================================================================
+    
+    $whereConditionsRL = [];
+    $paramsRL = [];
+    
+    if (!empty($fecha_inicio)) {
+        $whereConditionsRL[] = "rl.fecha >= :fecha_inicio_rl";
+        $paramsRL[':fecha_inicio_rl'] = $fecha_inicio . ' 00:00:00';
+    }
+    
+    if (!empty($fecha_fin)) {
+        $whereConditionsRL[] = "rl.fecha <= :fecha_fin_rl";
+        $paramsRL[':fecha_fin_rl'] = $fecha_fin . ' 23:59:59';
+    }
+    
+    $whereRL = !empty($whereConditionsRL) ? 'WHERE ' . implode(' AND ', $whereConditionsRL) : '';
+    
+    $query = "SELECT l.titulo, COUNT(rl.id_reserva_libro) as total
+              FROM reservalibro rl 
+              JOIN libro l ON rl.id_libro = l.id_libro
+              $whereRL
+              GROUP BY l.id_libro, l.titulo
+              ORDER BY total DESC LIMIT 5";
+    $stmt = $conn->prepare($query);
+    $stmt->execute($paramsRL);
+    $dataTopLibros = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // --- 3. TOP LIBROS ---
-        $query = "SELECT l.titulo, COUNT(rl.id_reserva_libro) as total
+    // ====================================================================
+    // 4. TIPO USUARIO (CORREGIDO)
+    // ====================================================================
+    
+    $whereConditionsLib = [];
+    $whereConditionsPc = [];
+    $paramsTipoUsuario = [];
+    
+    if (!empty($fecha_inicio)) {
+        $whereConditionsLib[] = "rl.fecha >= :fecha_inicio_lib2";
+        $whereConditionsPc[] = "rc.fecha >= :fecha_inicio_pc2";
+        $paramsTipoUsuario[':fecha_inicio_lib2'] = $fecha_inicio . ' 00:00:00';
+        $paramsTipoUsuario[':fecha_inicio_pc2'] = $fecha_inicio . ' 00:00:00';
+    }
+    
+    if (!empty($fecha_fin)) {
+        $whereConditionsLib[] = "rl.fecha <= :fecha_fin_lib2";
+        $whereConditionsPc[] = "rc.fecha <= :fecha_fin_pc2";
+        $paramsTipoUsuario[':fecha_fin_lib2'] = $fecha_fin . ' 23:59:59';
+        $paramsTipoUsuario[':fecha_fin_pc2'] = $fecha_fin . ' 23:59:59';
+    }
+    
+    $whereLib = !empty($whereConditionsLib) ? 'WHERE ' . implode(' AND ', $whereConditionsLib) : '';
+    $wherePc = !empty($whereConditionsPc) ? 'WHERE ' . implode(' AND ', $whereConditionsPc) : '';
+    
+    $query = "SELECT tu.nombre_tipo_usuario, COUNT(*) as total
+              FROM (
+                  SELECT u.id_tipo_usuario, rl.fecha
                   FROM reservalibro rl 
-                  JOIN libro l ON rl.id_libro = l.id_libro
-                  $whereClauseRL
-                  GROUP BY l.id_libro, l.titulo
-                  ORDER BY total DESC LIMIT 5";
-        $stmt = $conn->prepare($query); $stmt->execute($params);
-        $dataLibros = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                  JOIN usuario u ON rl.id_usuario = u.id_usuario
+                  $whereLib
+                  UNION ALL
+                  SELECT u.id_tipo_usuario, rc.fecha
+                  FROM reservacomputadora rc 
+                  JOIN usuario u ON rc.id_usuario = u.id_usuario
+                  $wherePc
+              ) as t
+              JOIN tipousuario tu ON t.id_tipo_usuario = tu.id_tipo_usuario
+              GROUP BY tu.nombre_tipo_usuario
+              ORDER BY total DESC";
+    $stmt = $conn->prepare($query);
+    $stmt->execute($paramsTipoUsuario);
+    $dataUsuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // --- 4. TIPO USUARIO ---
-        $query = "SELECT tu.nombre_tipo_usuario, COUNT(*) as total
-                  FROM (
-                      SELECT u.id_tipo_usuario, rl.fecha
-                      FROM reservalibro rl JOIN usuario u ON rl.id_usuario = u.id_usuario
-                      UNION ALL
-                      SELECT u.id_tipo_usuario, rc.fecha
-                      FROM reservacomputadora rc JOIN usuario u ON rc.id_usuario = u.id_usuario
-                  ) as t
-                  JOIN tipousuario tu ON t.id_tipo_usuario = tu.id_tipo_usuario
-                  $whereClauseUnion
-                  GROUP BY tu.nombre_tipo_usuario
-                  ORDER BY total DESC";
-        $stmt = $conn->prepare($query); $stmt->execute($params);
-        $dataUsuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    // ====================================================================
+    // 5. AFILIACIÓN (CORREGIDO)
+    // ====================================================================
+    
+    $whereConditionsLib3 = [];
+    $whereConditionsPc3 = [];
+    $paramsAfiliacion = [];
+    
+    if (!empty($fecha_inicio)) {
+        $whereConditionsLib3[] = "rl.fecha >= :fecha_inicio_lib3";
+        $whereConditionsPc3[] = "rc.fecha >= :fecha_inicio_pc3";
+        $paramsAfiliacion[':fecha_inicio_lib3'] = $fecha_inicio . ' 00:00:00';
+        $paramsAfiliacion[':fecha_inicio_pc3'] = $fecha_inicio . ' 00:00:00';
+    }
+    
+    if (!empty($fecha_fin)) {
+        $whereConditionsLib3[] = "rl.fecha <= :fecha_fin_lib3";
+        $whereConditionsPc3[] = "rc.fecha <= :fecha_fin_pc3";
+        $paramsAfiliacion[':fecha_fin_lib3'] = $fecha_fin . ' 23:59:59';
+        $paramsAfiliacion[':fecha_fin_pc3'] = $fecha_fin . ' 23:59:59';
+    }
+    
+    $whereLib3 = !empty($whereConditionsLib3) ? 'WHERE ' . implode(' AND ', $whereConditionsLib3) : '';
+    $wherePc3 = !empty($whereConditionsPc3) ? 'WHERE ' . implode(' AND ', $whereConditionsPc3) : '';
+    
+    $query = "SELECT a.nombre_afiliacion, COUNT(*) as total
+              FROM (
+                  SELECT u.id_afiliacion, rl.fecha
+                  FROM reservalibro rl 
+                  JOIN usuario u ON rl.id_usuario = u.id_usuario
+                  $whereLib3
+                  UNION ALL
+                  SELECT u.id_afiliacion, rc.fecha
+                  FROM reservacomputadora rc 
+                  JOIN usuario u ON rc.id_usuario = u.id_usuario
+                  $wherePc3
+              ) as t
+              JOIN afiliacion a ON t.id_afiliacion = a.id_afiliacion
+              GROUP BY a.nombre_afiliacion
+              ORDER BY total DESC";
+    $stmt = $conn->prepare($query);
+    $stmt->execute($paramsAfiliacion);
+    $dataAfiliacion = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // --- 5. AFILIACIÓN ---
-        $query = "SELECT a.nombre_afiliacion, COUNT(*) as total
-                  FROM (
-                      SELECT u.id_afiliacion, rl.fecha
-                      FROM reservalibro rl JOIN usuario u ON rl.id_usuario = u.id_usuario
-                      UNION ALL
-                      SELECT u.id_afiliacion, rc.fecha
-                      FROM reservacomputadora rc JOIN usuario u ON rc.id_usuario = u.id_usuario
-                  ) as t
-                  JOIN afiliacion a ON t.id_afiliacion = a.id_afiliacion
-                  $whereClauseUnion
-                  GROUP BY a.nombre_afiliacion
-                  ORDER BY total DESC";
-        $stmt = $conn->prepare($query); $stmt->execute($params);
-        $dataAfiliacion = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    // ====================================================================
+    // 6. TOP FACULTADES (CORREGIDO)
+    // ====================================================================
+    
+    $whereConditionsLib4 = [];
+    $whereConditionsPc4 = [];
+    $paramsFacultades = [];
+    
+    if (!empty($fecha_inicio)) {
+        $whereConditionsLib4[] = "rl.fecha >= :fecha_inicio_lib4";
+        $whereConditionsPc4[] = "rc.fecha >= :fecha_inicio_pc4";
+        $paramsFacultades[':fecha_inicio_lib4'] = $fecha_inicio . ' 00:00:00';
+        $paramsFacultades[':fecha_inicio_pc4'] = $fecha_inicio . ' 00:00:00';
+    }
+    
+    if (!empty($fecha_fin)) {
+        $whereConditionsLib4[] = "rl.fecha <= :fecha_fin_lib4";
+        $whereConditionsPc4[] = "rc.fecha <= :fecha_fin_pc4";
+        $paramsFacultades[':fecha_fin_lib4'] = $fecha_fin . ' 23:59:59';
+        $paramsFacultades[':fecha_fin_pc4'] = $fecha_fin . ' 23:59:59';
+    }
+    
+    $whereLib4 = !empty($whereConditionsLib4) ? 'WHERE ' . implode(' AND ', $whereConditionsLib4) : '';
+    $wherePc4 = !empty($whereConditionsPc4) ? 'WHERE ' . implode(' AND ', $whereConditionsPc4) : '';
+    
+    $query = "SELECT f.nombre_facultad, COUNT(*) as total
+              FROM (
+                  SELECT u.id_usuario, rl.fecha
+                  FROM reservalibro rl 
+                  JOIN usuario u ON rl.id_usuario = u.id_usuario
+                  $whereLib4
+                  UNION ALL
+                  SELECT u.id_usuario, rc.fecha
+                  FROM reservacomputadora rc 
+                  JOIN usuario u ON rc.id_usuario = u.id_usuario
+                  $wherePc4
+              ) as t
+              JOIN usuario u ON t.id_usuario = u.id_usuario
+              INNER JOIN usuario_interno_detalle uid ON u.id_usuario = uid.id_usuario
+              INNER JOIN facultad f ON uid.id_facultad = f.id_facultad
+              GROUP BY f.nombre_facultad
+              ORDER BY total DESC LIMIT 5";
+    $stmt = $conn->prepare($query);
+    $stmt->execute($paramsFacultades);
+    $dataFacultades = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // --- 6. TOP FACULTADES ---
-        // MODIFICADO: Se eliminan las facultades externas (ued) y se usan INNER JOIN 
-        // para contar solo facultades internas (UP)
-        $query = "SELECT f.nombre_facultad, 
-                         COUNT(*) as total
-                  FROM (
-                      SELECT u.id_usuario, rl.fecha
-                      FROM reservalibro rl JOIN usuario u ON rl.id_usuario = u.id_usuario
-                      UNION ALL
-                      SELECT u.id_usuario, rc.fecha
-                      FROM reservacomputadora rc JOIN usuario u ON rc.id_usuario = u.id_usuario
-                  ) as t
-                  JOIN usuario u ON t.id_usuario = u.id_usuario
-                  INNER JOIN usuario_interno_detalle uid ON u.id_usuario = uid.id_usuario
-                  INNER JOIN facultad f ON uid.id_facultad = f.id_facultad
-                  -- Se eliminó: LEFT JOIN usuario_externo_detalle ued ON u.id_usuario = ued.id_usuario
-                  $whereClauseUnion
-                  GROUP BY f.nombre_facultad
-                  ORDER BY total DESC LIMIT 5";
-        $stmt = $conn->prepare($query); $stmt->execute($params);
-        $dataFacultades = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    // ====================================================================
+    // 7. TURNOS (PC)
+    // ====================================================================
+    
+    $whereConditionsRC = [];
+    $paramsRC = [];
+    
+    if (!empty($fecha_inicio)) {
+        $whereConditionsRC[] = "rc.fecha >= :fecha_inicio_rc";
+        $paramsRC[':fecha_inicio_rc'] = $fecha_inicio . ' 00:00:00';
+    }
+    
+    if (!empty($fecha_fin)) {
+        $whereConditionsRC[] = "rc.fecha <= :fecha_fin_rc";
+        $paramsRC[':fecha_fin_rc'] = $fecha_fin . ' 23:59:59';
+    }
+    
+    $whereRC = !empty($whereConditionsRC) ? 'WHERE ' . implode(' AND ', $whereConditionsRC) : '';
+    
+    $query = "SELECT t.nombre_turno, COUNT(*) as total
+              FROM reservacomputadora rc
+              JOIN turno t ON rc.id_turno = t.id_turno
+              $whereRC
+              GROUP BY t.nombre_turno
+              ORDER BY total DESC";
+    $stmt = $conn->prepare($query);
+    $stmt->execute($paramsRC);
+    $dataTurnos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    // ====================================================================
+    // 7b. TURNOS (LIBROS)
+    // ====================================================================
+    
+    $query = "SELECT t.nombre_turno, COUNT(*) as total
+              FROM reservalibro rl
+              JOIN turno t ON rl.id_turno = t.id_turno
+              $whereRL
+              GROUP BY t.nombre_turno
+              ORDER BY total DESC";
+    $stmt = $conn->prepare($query);
+    $stmt->execute($paramsRL);
+    $dataTurnosLibros = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // --- 7. TURNOS ---
-        $query = "SELECT t.nombre_turno, COUNT(*) as total
-                  FROM reservacomputadora rc
-                  JOIN turno t ON rc.id_turno = t.id_turno
-                  $whereClauseRC
-                  GROUP BY t.nombre_turno
-                  ORDER BY total DESC";
-        $stmt = $conn->prepare($query); $stmt->execute($params);
-        $dataTurnos = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        // --- 7b. TURNOS (LIBROS) ---
-        $query = "SELECT t.nombre_turno, COUNT(*) as total
-                  FROM reservalibro rl
-                  JOIN turno t ON rl.id_turno = t.id_turno
-                  $whereClauseRL
-                  GROUP BY t.nombre_turno
-                  ORDER BY total DESC";
-        $stmt = $conn->prepare($query); $stmt->execute($params);
-        $dataTurnosLibros = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    // ====================================================================
+    // 8. TIPOS DE USO (PC)
+    // ====================================================================
+    
+    $query = "SELECT tu.nombre_tipo_uso, COUNT(*) as total
+              FROM reservacomputadora rc
+              JOIN tipouso tu ON rc.id_tipo_uso = tu.id_tipo_uso
+              $whereRC
+              GROUP BY tu.nombre_tipo_uso
+              ORDER BY total DESC";
+    $stmt = $conn->prepare($query);
+    $stmt->execute($paramsRC);
+    $dataTiposUso = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // --- 8. TIPOS DE USO (PC) ---
-        $query = "SELECT tu.nombre_tipo_uso, COUNT(*) as total
-                  FROM reservacomputadora rc
-                  JOIN tipouso tu ON rc.id_tipo_uso = tu.id_tipo_uso
-                  $whereClauseRC
-                  GROUP BY tu.nombre_tipo_uso
-                  ORDER BY total DESC";
-        $stmt = $conn->prepare($query); $stmt->execute($params);
-        $dataTiposUso = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    // ====================================================================
+    // 9. TIPOS DE RESERVA (LIBRO)
+    // ====================================================================
+    
+    $query = "SELECT tr.nombre_tipo_reserva, COUNT(*) as total
+              FROM reservalibro rl
+              JOIN tiporeserva tr ON rl.id_tipo_reserva = tr.id_tipo_reserva
+              $whereRL
+              GROUP BY tr.nombre_tipo_reserva
+              ORDER BY total DESC";
+    $stmt = $conn->prepare($query);
+    $stmt->execute($paramsRL);
+    $dataTiposReserva = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // --- 9. TIPOS DE RESERVA (LIBRO) ---
-        $query = "SELECT tr.nombre_tipo_reserva, COUNT(*) as total
-                  FROM reservalibro rl
-                  JOIN tiporeserva tr ON rl.id_tipo_reserva = tr.id_tipo_reserva
-                  $whereClauseRL
-                  GROUP BY tr.nombre_tipo_reserva
-                  ORDER BY total DESC";
-        $stmt = $conn->prepare($query); $stmt->execute($params);
-        $dataTiposReserva = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    // ====================================================================
+    // 10. CATEGORÍAS (LIBRO)
+    // ====================================================================
+    
+    $query = "SELECT COALESCE(c.nombre_categoria, 'Sin categoría') as nombre_categoria, COUNT(*) as total
+              FROM reservalibro rl
+              JOIN libro l ON rl.id_libro = l.id_libro
+              LEFT JOIN categoria c ON l.id_categoria = c.id_categoria
+              $whereRL
+              GROUP BY c.id_categoria, c.nombre_categoria
+              ORDER BY total DESC LIMIT 8";
+    $stmt = $conn->prepare($query);
+    $stmt->execute($paramsRL);
+    $dataCategorias = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // --- 10. CATEGORÍAS (LIBRO) ---
-        $query = "SELECT COALESCE(c.nombre_categoria, 'Sin categoría') as nombre_categoria, COUNT(*) as total
-                  FROM reservalibro rl
-                  JOIN libro l ON rl.id_libro = l.id_libro
-                  LEFT JOIN categoria c ON l.id_categoria = c.id_categoria
-                  $whereClauseRL
-                  GROUP BY c.id_categoria, c.nombre_categoria
-                  ORDER BY total DESC LIMIT 8";
-        $stmt = $conn->prepare($query); $stmt->execute($params);
-        $dataCategorias = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    // ====================================================================
+    // 11. ORIGEN (CLIENTE vs ADMIN)
+    // ====================================================================
+    
+    $whereLibrosCliente = $whereClauseGeneral;
+    if (empty($whereClauseGeneral)) {
+        $whereLibrosCliente = "WHERE origen = 'cliente'";
+    } else {
+        $whereLibrosCliente .= " AND origen = 'cliente'";
+    }
+    
+    $whereLibrosAdmin = $whereClauseGeneral;
+    if (empty($whereClauseGeneral)) {
+        $whereLibrosAdmin = "WHERE origen = 'admin'";
+    } else {
+        $whereLibrosAdmin .= " AND origen = 'admin'";
+    }
+    
+    $wherePcsCliente = $whereClauseGeneral;
+    if (empty($whereClauseGeneral)) {
+        $wherePcsCliente = "WHERE origen = 'cliente'";
+    } else {
+        $wherePcsCliente .= " AND origen = 'cliente'";
+    }
+    
+    $wherePcsAdmin = $whereClauseGeneral;
+    if (empty($whereClauseGeneral)) {
+        $wherePcsAdmin = "WHERE origen = 'admin'";
+    } else {
+        $wherePcsAdmin .= " AND origen = 'admin'";
+    }
 
-        // --- 11. ORIGEN (CLIENTE vs ADMIN) ---
-        $whereLibrosCliente = $whereClauseGeneral . (empty($whereClauseGeneral) ? "WHERE origen = 'cliente'" : " AND origen = 'cliente'");
-        $whereLibrosAdmin = $whereClauseGeneral . (empty($whereClauseGeneral) ? "WHERE origen = 'admin'" : " AND origen = 'admin'");
-        $wherePcsCliente = $whereClauseGeneral . (empty($whereClauseGeneral) ? "WHERE origen = 'cliente'" : " AND origen = 'cliente'");
-        $wherePcsAdmin = $whereClauseGeneral . (empty($whereClauseGeneral) ? "WHERE origen = 'admin'" : " AND origen = 'admin'");
+    $queryLibrosCliente = "SELECT COUNT(*) as total FROM reservalibro $whereLibrosCliente";
+    $stmtLibrosCliente = $conn->prepare($queryLibrosCliente);
+    $stmtLibrosCliente->execute($params);
+    $librosCliente = $stmtLibrosCliente->fetch(PDO::FETCH_ASSOC)['total'];
 
-        $queryLibrosCliente = "SELECT COUNT(*) as total FROM reservalibro $whereLibrosCliente";
-        $stmtLibrosCliente = $conn->prepare($queryLibrosCliente); $stmtLibrosCliente->execute($params);
-        $librosCliente = $stmtLibrosCliente->fetch(PDO::FETCH_ASSOC)['total'];
+    $queryLibrosAdmin = "SELECT COUNT(*) as total FROM reservalibro $whereLibrosAdmin";
+    $stmtLibrosAdmin = $conn->prepare($queryLibrosAdmin);
+    $stmtLibrosAdmin->execute($params);
+    $librosAdmin = $stmtLibrosAdmin->fetch(PDO::FETCH_ASSOC)['total'];
 
-        $queryLibrosAdmin = "SELECT COUNT(*) as total FROM reservalibro $whereLibrosAdmin";
-        $stmtLibrosAdmin = $conn->prepare($queryLibrosAdmin); $stmtLibrosAdmin->execute($params);
-        $librosAdmin = $stmtLibrosAdmin->fetch(PDO::FETCH_ASSOC)['total'];
+    $queryPcsCliente = "SELECT COUNT(*) as total FROM reservacomputadora $wherePcsCliente";
+    $stmtPcsCliente = $conn->prepare($queryPcsCliente);
+    $stmtPcsCliente->execute($params);
+    $pcsCliente = $stmtPcsCliente->fetch(PDO::FETCH_ASSOC)['total'];
 
-        $queryPcsCliente = "SELECT COUNT(*) as total FROM reservacomputadora $wherePcsCliente";
-        $stmtPcsCliente = $conn->prepare($queryPcsCliente); $stmtPcsCliente->execute($params);
-        $pcsCliente = $stmtPcsCliente->fetch(PDO::FETCH_ASSOC)['total'];
+    $queryPcsAdmin = "SELECT COUNT(*) as total FROM reservacomputadora $wherePcsAdmin";
+    $stmtPcsAdmin = $conn->prepare($queryPcsAdmin);
+    $stmtPcsAdmin->execute($params);
+    $pcsAdmin = $stmtPcsAdmin->fetch(PDO::FETCH_ASSOC)['total'];
 
-        $queryPcsAdmin = "SELECT COUNT(*) as total FROM reservacomputadora $wherePcsAdmin";
-        $stmtPcsAdmin = $conn->prepare($queryPcsAdmin); $stmtPcsAdmin->execute($params);
-        $pcsAdmin = $stmtPcsAdmin->fetch(PDO::FETCH_ASSOC)['total'];
+    $dataOrigen = [
+        'libros_cliente' => (int)$librosCliente,
+        'libros_admin' => (int)$librosAdmin,
+        'pcs_cliente' => (int)$pcsCliente,
+        'pcs_admin' => (int)$pcsAdmin
+    ];
 
-        $dataOrigen = [
-            'libros_cliente' => (int)$librosCliente,
-            'libros_admin' => (int)$librosAdmin,
-            'pcs_cliente' => (int)$pcsCliente,
-            'pcs_admin' => (int)$pcsAdmin
-        ];
-
-        // --- COMPILAR RESPUESTA FINAL ---
-        echo json_encode([
-            'kpis' => $dataKPIs,
-            'general' => $dataGeneral,
-            'top_libros' => $dataLibros,
-            'tipo_usuario' => $dataUsuarios,
-            'afiliacion' => $dataAfiliacion,
-            'top_facultades' => $dataFacultades,
-            'turnos' => $dataTurnos,
-            'turnos_libros' => $dataTurnosLibros,
-            'tipos_uso' => $dataTiposUso,
-            'tipos_reserva' => $dataTiposReserva,
-            'categorias' => $dataCategorias,
-            'origen' => $dataOrigen
-        ]);
-        break;
+    // ====================================================================
+    // COMPILAR RESPUESTA FINAL
+    // ====================================================================
+    
+    $respuesta = [
+        'kpis' => $dataKPIs,
+        'general' => $dataGeneral,
+        'top_libros' => $dataTopLibros,
+        'tipo_usuario' => $dataUsuarios,
+        'afiliacion' => $dataAfiliacion,
+        'top_facultades' => $dataFacultades,
+        'turnos' => $dataTurnos,
+        'turnos_libros' => $dataTurnosLibros,
+        'tipos_uso' => $dataTiposUso,
+        'tipos_reserva' => $dataTiposReserva,
+        'categorias' => $dataCategorias,
+        'origen' => $dataOrigen
+    ];
+    
+    echo json_encode($respuesta);
+    break;
         }
 ?>

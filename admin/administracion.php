@@ -314,6 +314,23 @@ $pageStyles = '
             margin-right: var(--spacing-sm);
         }
 
+        /* ==== ESTILOS AGREGADOS (PARA AMBOS FORMULARIOS) ==== */
+        .password-rules {
+            margin-top: 10px;
+            font-size: 0.9em;
+        }
+        .password-rules div {
+            transition: color 0.3s ease;
+            padding: 2px 0;
+        }
+        .password-rules div.valid {
+            color: #28a745; /* green */
+        }
+        .password-rules div.invalid {
+            color: #dc3545; /* red */
+        }
+        /* ==== FIN ESTILOS AGREGADOS ==== */
+
         @media (max-width: 768px) {
             .form-row {
                 flex-direction: column;
@@ -454,13 +471,25 @@ require_once 'templates/header.php';
                                 <div class="form-group">
                                     <label for="contrasena">Contraseña:</label>
                                     <input type="password" id="contrasena" name="contrasena" 
-                                           class="form-control" required minlength="6">
-                                </div>
+                                           class="form-control" required minlength="8">
+                                    
+                                    <div id="password-rules-create" class="password-rules">
+                                        <div id="rule-length-create" class="invalid">
+                                            <i class="fas fa-times-circle"></i> Debe contener al menos 8 caracteres.
+                                        </div>
+                                        <div id="rule-case-num-create" class="invalid">
+                                            <i class="fas fa-times-circle"></i> Debe contener mayúsculas, minúsculas y números.
+                                        </div>
+                                        <div id="rule-special-create" class="invalid">
+                                            <i class="fas fa-times-circle"></i> Si tiene menos de 12 caracteres, debe contener un carácter especial.
+                                        </div>
+                                    </div>
+                                    </div>
                                 
                                 <div class="form-group">
                                     <label for="confirmar_contrasena">Confirmar Contraseña:</label>
                                     <input type="password" id="confirmar_contrasena" name="confirmar_contrasena" 
-                                           class="form-control" required minlength="6">
+                                           class="form-control" required minlength="8">
                                 </div>
                             </div>
                             
@@ -515,14 +544,26 @@ require_once 'templates/header.php';
                                 <div class="form-group">
                                     <label for="nueva_contrasena">Nueva Contraseña (opcional):</label>
                                     <input type="password" id="nueva_contrasena" name="nueva_contrasena" 
-                                           class="form-control" minlength="6">
+                                           class="form-control" minlength="8">
                                     <small style="color: #666;">Deja en blanco si no deseas cambiar la contraseña</small>
-                                </div>
+                                    
+                                    <div id="password-rules-edit" class="password-rules" style="display: none;">
+                                        <div id="rule-length-edit" class="invalid">
+                                            <i class="fas fa-times-circle"></i> Debe contener al menos 8 caracteres.
+                                        </div>
+                                        <div id="rule-case-num-edit" class="invalid">
+                                            <i class="fas fa-times-circle"></i> Debe contener mayúsculas, minúsculas y números.
+                                        </div>
+                                        <div id="rule-special-edit" class="invalid">
+                                            <i class="fas fa-times-circle"></i> Si tiene menos de 12 caracteres, debe contener un carácter especial.
+                                        </div>
+                                    </div>
+                                    </div>
                                 
                                 <div class="form-group">
                                     <label for="edit_confirmar_contrasena">Confirmar Nueva Contraseña:</label>
                                     <input type="password" id="edit_confirmar_contrasena" name="confirmar_contrasena" 
-                                           class="form-control" minlength="6">
+                                           class="form-control" minlength="8">
                                 </div>
                             </div>
                             
@@ -833,7 +874,6 @@ require_once 'templates/header.php';
                 </div>
             </div>
 
-            <!-- MODAL ELIMINAR BIBLIOTECARIO -->
             <div id="modalEliminarBibliotecario" class="modal">
                 <div class="modal-overlay" onclick="cerrarModal('modalEliminarBibliotecario')"></div>
                 <div class="modal-content">
@@ -855,7 +895,6 @@ require_once 'templates/header.php';
                 </div>
             </div>
 
-            <!-- MODAL CAMBIAR ESTADO FACULTAD -->
             <div id="modalCambiarEstadoFacultad" class="modal">
                 <div class="modal-overlay" onclick="cerrarModal('modalCambiarEstadoFacultad')"></div>
                 <div class="modal-content">
@@ -878,7 +917,6 @@ require_once 'templates/header.php';
                 </div>
             </div>
 
-            <!-- MODAL CAMBIAR ESTADO CARRERA -->
             <div id="modalCambiarEstadoCarrera" class="modal">
                 <div class="modal-overlay" onclick="cerrarModal('modalCambiarEstadoCarrera')"></div>
                 <div class="modal-content">
@@ -904,26 +942,6 @@ require_once 'templates/header.php';
     </div>
 
     <script>
-        // Toggle sidebar functionality
-        const menuToggle = document.getElementById('menuToggle');
-        const sidebar = document.getElementById('sidebar');
-        const mainWrapper = document.getElementById('mainWrapper');
-        const sidebarOverlay = document.getElementById('sidebarOverlay');
-
-        menuToggle.addEventListener('click', function() {
-            if (window.innerWidth <= 768) {
-                sidebar.classList.toggle('mobile-open');
-                sidebarOverlay.classList.toggle('active');
-            } else {
-                sidebar.classList.toggle('collapsed');
-                mainWrapper.classList.toggle('expanded');
-            }
-        });
-
-        sidebarOverlay.addEventListener('click', function() {
-            sidebar.classList.remove('mobile-open');
-            sidebarOverlay.classList.remove('active');
-        });
 
         // Sistema de pestañas
         function switchTab(tabName) {
@@ -985,8 +1003,11 @@ require_once 'templates/header.php';
             document.getElementById('edit_cedula').value = bibliotecario.cedula;
             document.getElementById('edit_es_administrador').checked = bibliotecario.es_administrador == 1;
             
+            // Limpiar campos de contraseña y ocultar reglas de edición
             document.getElementById('nueva_contrasena').value = '';
             document.getElementById('edit_confirmar_contrasena').value = '';
+            document.getElementById('password-rules-edit').style.display = 'none';
+            document.getElementById('edit_confirmar_contrasena').removeAttribute('required');
             
             formularioEditar.scrollIntoView({ behavior: 'smooth' });
         }
@@ -1110,7 +1131,159 @@ require_once 'templates/header.php';
             abrirModal('modalCambiarEstadoCarrera');
         }
 
-        // Validación de contraseñas para crear
+        // ===== VALIDACIÓN DE CONTRASEÑA (GENERAL) =====
+        const hasUpper = /[A-Z]/;
+        const hasLower = /[a-z]/;
+        const hasNum = /[0-9]/;
+        const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/; // Caracteres especiales básicos
+
+        // ===== VALIDACIÓN DE CONTRASEÑA (CREAR) =====
+        const contrasenaInput = document.getElementById('contrasena');
+        const ruleLengthCreate = document.getElementById('rule-length-create');
+        const ruleCaseNumCreate = document.getElementById('rule-case-num-create');
+        const ruleSpecialCreate = document.getElementById('rule-special-create');
+
+        if (contrasenaInput) {
+            function validarNuevaContrasena() {
+                const pass = contrasenaInput.value;
+                let allValid = true;
+
+                // 1. Regla: Longitud (al menos 8)
+                if (pass.length >= 8) {
+                    ruleLengthCreate.classList.add('valid');
+                    ruleLengthCreate.classList.remove('invalid');
+                    ruleLengthCreate.innerHTML = '<i class="fas fa-check-circle"></i> Debe contener al menos 8 caracteres.';
+                } else {
+                    ruleLengthCreate.classList.add('invalid');
+                    ruleLengthCreate.classList.remove('valid');
+                    ruleLengthCreate.innerHTML = '<i class="fas fa-times-circle"></i> Debe contener al menos 8 caracteres.';
+                    allValid = false;
+                }
+
+                // 2. Regla: Mayúscula, Minúscula y Número
+                if (hasUpper.test(pass) && hasLower.test(pass) && hasNum.test(pass)) {
+                    ruleCaseNumCreate.classList.add('valid');
+                    ruleCaseNumCreate.classList.remove('invalid');
+                    ruleCaseNumCreate.innerHTML = '<i class="fas fa-check-circle"></i> Debe contener mayúsculas, minúsculas y números.';
+                } else {
+                    ruleCaseNumCreate.classList.add('invalid');
+                    ruleCaseNumCreate.classList.remove('valid');
+                    ruleCaseNumCreate.innerHTML = '<i class="fas fa-times-circle"></i> Debe contener mayúsculas, minúsculas y números.';
+                    allValid = false;
+                }
+
+                // 3. Regla: Carácter especial (condicional)
+                if (pass.length < 12) {
+                    if (hasSpecial.test(pass)) {
+                        ruleSpecialCreate.classList.add('valid');
+                        ruleSpecialCreate.classList.remove('invalid');
+                        ruleSpecialCreate.innerHTML = '<i class="fas fa-check-circle"></i> Si tiene menos de 12 caracteres, debe contener un carácter especial.';
+                    } else {
+                        ruleSpecialCreate.classList.add('invalid');
+                        ruleSpecialCreate.classList.remove('valid');
+                        ruleSpecialCreate.innerHTML = '<i class="fas fa-times-circle"></i> Si tiene menos de 12 caracteres, debe contener un carácter especial.';
+                        allValid = false;
+                    }
+                } else {
+                    ruleSpecialCreate.classList.add('valid');
+                    ruleSpecialCreate.classList.remove('invalid');
+                    ruleSpecialCreate.innerHTML = '<i class="fas fa-check-circle"></i> Si tiene menos de 12 caracteres, debe contener un carácter especial.';
+                }
+                
+                if (allValid) {
+                    contrasenaInput.setCustomValidity('');
+                } else {
+                    contrasenaInput.setCustomValidity('La contraseña no cumple con todos los requisitos.');
+                }
+            }
+            contrasenaInput.addEventListener('input', validarNuevaContrasena);
+        }
+        // ===== FIN VALIDACIÓN CREAR =====
+
+        // ===== VALIDACIÓN DE CONTRASEÑA (EDITAR) =====
+        const editContrasenaInput = document.getElementById('nueva_contrasena');
+        const editRulesContainer = document.getElementById('password-rules-edit');
+        const ruleLengthEdit = document.getElementById('rule-length-edit');
+        const ruleCaseNumEdit = document.getElementById('rule-case-num-edit');
+        const ruleSpecialEdit = document.getElementById('rule-special-edit');
+        const editConfirmarContrasena = document.getElementById('edit_confirmar_contrasena');
+
+        if (editContrasenaInput) {
+            
+            function validarEdicionContrasena() {
+                const pass = editContrasenaInput.value;
+                let allValid = true;
+
+                // 1. Regla: Longitud
+                if (pass.length >= 8) {
+                    ruleLengthEdit.classList.add('valid');
+                    ruleLengthEdit.classList.remove('invalid');
+                    ruleLengthEdit.innerHTML = '<i class="fas fa-check-circle"></i> Debe contener al menos 8 caracteres.';
+                } else {
+                    ruleLengthEdit.classList.add('invalid');
+                    ruleLengthEdit.classList.remove('valid');
+                    ruleLengthEdit.innerHTML = '<i class="fas fa-times-circle"></i> Debe contener al menos 8 caracteres.';
+                    allValid = false;
+                }
+
+                // 2. Regla: Cas/Num
+                if (hasUpper.test(pass) && hasLower.test(pass) && hasNum.test(pass)) {
+                    ruleCaseNumEdit.classList.add('valid');
+                    ruleCaseNumEdit.classList.remove('invalid');
+                    ruleCaseNumEdit.innerHTML = '<i class="fas fa-check-circle"></i> Debe contener mayúsculas, minúsculas y números.';
+                } else {
+                    ruleCaseNumEdit.classList.add('invalid');
+                    ruleCaseNumEdit.classList.remove('valid');
+                    ruleCaseNumEdit.innerHTML = '<i class="fas fa-times-circle"></i> Debe contener mayúsculas, minúsculas y números.';
+                    allValid = false;
+                }
+
+                // 3. Regla: Especial
+                if (pass.length < 12) {
+                    if (hasSpecial.test(pass)) {
+                        ruleSpecialEdit.classList.add('valid');
+                        ruleSpecialEdit.classList.remove('invalid');
+                        ruleSpecialEdit.innerHTML = '<i class="fas fa-check-circle"></i> Si tiene menos de 12 caracteres, debe contener un carácter especial.';
+                    } else {
+                        ruleSpecialEdit.classList.add('invalid');
+                        ruleSpecialEdit.classList.remove('valid');
+                        ruleSpecialEdit.innerHTML = '<i class="fas fa-times-circle"></i> Si tiene menos de 12 caracteres, debe contener un carácter especial.';
+                        allValid = false;
+                    }
+                } else {
+                    ruleSpecialEdit.classList.add('valid');
+                    ruleSpecialEdit.classList.remove('invalid');
+                    ruleSpecialEdit.innerHTML = '<i class="fas fa-check-circle"></i> Si tiene menos de 12 caracteres, debe contener un carácter especial.';
+                }
+
+                if (allValid) {
+                    editContrasenaInput.setCustomValidity('');
+                } else {
+                    editContrasenaInput.setCustomValidity('La contraseña no cumple con todos los requisitos.');
+                }
+            }
+
+            // Listener principal para el campo de edición
+            editContrasenaInput.addEventListener('input', function() {
+                if (this.value === '') {
+                    // Si está vacío, ocultar las reglas, limpiar la confirmación y quitar 'required'
+                    editRulesContainer.style.display = 'none';
+                    editConfirmarContrasena.value = '';
+                    editConfirmarContrasena.removeAttribute('required');
+                    editContrasenaInput.setCustomValidity(''); // Limpiar validez
+                    editConfirmarContrasena.setCustomValidity('');
+                } else {
+                    // Si se está escribiendo, mostrar las reglas, validar y hacer 'required' la confirmación
+                    editRulesContainer.style.display = 'block';
+                    editConfirmarContrasena.setAttribute('required', 'required');
+                    validarEdicionContrasena(); // Ejecutar la validación
+                }
+            });
+        }
+        // ===== FIN VALIDACIÓN EDITAR =====
+
+
+        // Validación de confirmación (Crear)
         document.getElementById('confirmar_contrasena').addEventListener('input', function() {
             const contrasena = document.getElementById('contrasena').value;
             const confirmar = this.value;
@@ -1122,7 +1295,7 @@ require_once 'templates/header.php';
             }
         });
 
-        // Validación de contraseñas para editar
+        // Validación de confirmación (Editar)
         document.getElementById('edit_confirmar_contrasena').addEventListener('input', function() {
             const contrasena = document.getElementById('nueva_contrasena').value;
             const confirmar = this.value;
@@ -1133,32 +1306,22 @@ require_once 'templates/header.php';
                 this.setCustomValidity('');
             }
         });
-
-        // Validación adicional para que ambas contraseñas estén llenas o ambas vacías
-        document.getElementById('nueva_contrasena').addEventListener('input', function() {
-            const confirmar = document.getElementById('edit_confirmar_contrasena');
-            if (this.value === '') {
-                confirmar.value = '';
-                confirmar.removeAttribute('required');
-            } else {
-                confirmar.setAttribute('required', 'required');
-            }
-        });
+        
 
         // Validación de formato de cédula
-function validarCedula(input) {
-    // Remover caracteres no permitidos mientras escribe
-    input.value = input.value.replace(/[^0-9\-]/g, '');
-}
+        function validarCedula(input) {
+            // Remover caracteres no permitidos mientras escribe
+            input.value = input.value.replace(/[^0-9\-]/g, '');
+        }
 
-// Agregar validación en tiempo real
-document.getElementById('cedula').addEventListener('input', function() {
-    validarCedula(this);
-});
+        // Agregar validación en tiempo real
+        document.getElementById('cedula').addEventListener('input', function() {
+            validarCedula(this);
+        });
 
-document.getElementById('edit_cedula').addEventListener('input', function() {
-    validarCedula(this);
-});
+        document.getElementById('edit_cedula').addEventListener('input', function() {
+            validarCedula(this);
+        });
 
         
     </script>

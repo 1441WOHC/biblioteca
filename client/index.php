@@ -11,10 +11,10 @@
     <div style="display: flex; padding: 10px;" class="header">
         <div class="container">
             <h1>Sistema de Reservas</h1>
-            <p>Biblioteca Gil Blas Tejeira</p>
+            <p>Biblioteca Universitaria</p>
         </div>
         <div class="container">
-<img style="height: 100px;" src="../img/up.png" alt="Logo UP">
+<img style="height: 100px;" src="../img/sb.jpg" alt="Logo UP">
         </div>
     </div>
 

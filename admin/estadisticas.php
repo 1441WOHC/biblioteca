@@ -7,9 +7,7 @@ if (!isset($_SESSION['bibliotecario'])) {
     exit;
 }
 
-
 $esAdministrador = isset($_SESSION['bibliotecario']['es_administrador']) && $_SESSION['bibliotecario']['es_administrador'];
-
 
 // 2. Definir variables para el header.php
 $pageTitle = 'Estadísticas y Reportes';
@@ -60,6 +58,12 @@ $pageStyles = '
         transform: translateX(110%);
         opacity: 0;
     }
+}
+
+/* Ajuste para que los gráficos de ApexCharts se vean bien */
+.chart-container {
+    position: relative;
+    width: 100%;
 }
     
 </style>
@@ -122,25 +126,25 @@ require_once 'templates/header.php';
     <div class="card">
         <h2><i class="fas fa-chart-line"></i> Tendencia de Uso por Día</h2>
         <p style="color: #6c757d; font-size: 0.95em;">Evolución diaria de reservas de libros y computadoras</p>
-        <div class="chart-container" style="position: relative; height:400px; width:100%;">
-            <canvas id="graficoUsoGeneral"></canvas>
+        <div class="chart-container">
+            <div id="graficoUsoGeneral"></div>
         </div>
     </div>
 
     <!-- Gráficos de Distribución -->
     <div class="form-row">
         <div class="card" style="flex: 1;">
-            <h2><i class="fas fa-users"></i> Usuarios por Tipo</h2>
+            <h2><i class="fas fa-chart-pie"></i> Reservas por Tipo de Usuario</h2>
             <p style="color: #6c757d; font-size: 0.9em;">Distribución de reservas según perfil de usuario</p>
-            <div class="chart-container" style="position: relative; height:350px; width:100%;">
-                <canvas id="graficoTipoUsuario"></canvas>
+            <div class="chart-container">
+                <div id="graficoTipoUsuario"></div>
             </div>
         </div>
         <div class="card" style="flex: 1;">
-            <h2><i class="fas fa-university"></i> Usuarios por Afiliación</h2>
+            <h2><i class="fas fa-building"></i> Reservas por Afiliación</h2>
             <p style="color: #6c757d; font-size: 0.9em;">Distribución de usuarios según institución</p>
-            <div class="chart-container" style="position: relative; height:350px; width:100%;">
-                <canvas id="graficoAfiliacion"></canvas>
+            <div class="chart-container">
+                <div id="graficoAfiliacion"></div>
             </div>
         </div>
     </div>
@@ -150,15 +154,15 @@ require_once 'templates/header.php';
         <div class="card" style="flex: 1;">
             <h2><i class="fas fa-trophy"></i> Top 5 Libros Más Solicitados</h2>
             <p style="color: #6c757d; font-size: 0.9em;">Títulos con mayor cantidad de reservas</p>
-            <div class="chart-container" style="position: relative; height:350px; width:100%;">
-                <canvas id="graficoTopLibros"></canvas>
+            <div class="chart-container">
+                <div id="graficoTopLibros"></div>
             </div>
         </div>
         <div class="card" style="flex: 1;">
             <h2><i class="fas fa-graduation-cap"></i> Top 5 Facultades Más Activas</h2>
             <p style="color: #6c757d; font-size: 0.9em;">Facultades con mayor uso del sistema</p>
-            <div class="chart-container" style="position: relative; height:350px; width:100%;">
-                <canvas id="graficoTopFacultades"></canvas>
+            <div class="chart-container">
+                <div id="graficoTopFacultades"></div>
             </div>
         </div>
     </div>
@@ -167,13 +171,15 @@ require_once 'templates/header.php';
         <div class="card" style="flex: 1;">
             <h2><i class="fas fa-clock"></i> Uso de PCs por Turno</h2>
             <p style="color: #6c757d; font-size: 0.9em;">Distribución de reservas de computadoras</p>
-            <div class="chart-container" style="position: relative; height:300px; width:100%;">
-                <canvas id="graficoTurnosPC"></canvas> </div>
+            <div class="chart-container">
+                <div id="graficoTurnosPC"></div> 
+            </div>
         </div>
         <div class="card" style="flex: 1;">
             <h2><i class="fas fa-hourglass-half"></i> Uso de Libros por Turno</h2> <p style="color: #6c757d; font-size: 0.9em;">Distribución de reservas de libros</p>
-            <div class="chart-container" style="position: relative; height:300px; width:100%;">
-                <canvas id="graficoTurnosLibros"></canvas> </div>
+            <div class="chart-container">
+                <div id="graficoTurnosLibros"></div> 
+            </div>
         </div>
     </div>
 
@@ -181,15 +187,15 @@ require_once 'templates/header.php';
         <div class="card" style="flex: 1;">
             <h2><i class="fas fa-desktop"></i> Tipos de Uso de PCs</h2>
             <p style="color: #6c757d; font-size: 0.9em;">Propósitos de uso de las computadoras</p>
-            <div class="chart-container" style="position: relative; height:300px; width:100%;">
-                <canvas id="graficoTiposUso"></canvas>
+            <div class="chart-container">
+                <div id="graficoTiposUso"></div>
             </div>
         </div>
         <div class="card" style="flex: 1;">
             <h2><i class="fas fa-book-reader"></i> Tipos de Reserva de Libros</h2>
             <p style="color: #6c757d; font-size: 0.9em;">Préstamo externo vs. consulta en sala</p>
-            <div class="chart-container" style="position: relative; height:300px; width:100%;">
-                <canvas id="graficoTiposReserva"></canvas>
+            <div class="chart-container">
+                <div id="graficoTiposReserva"></div>
             </div>
         </div>
     </div>
@@ -197,8 +203,8 @@ require_once 'templates/header.php';
     <div class="card">
         <h2><i class="fas fa-tags"></i> Categorías Más Consultadas</h2>
         <p style="color: #6c757d; font-size: 0.9em;">Distribución de reservas por categoría de libro</p>
-        <div class="chart-container" style="position: relative; height:300px; width:100%;">
-            <canvas id="graficoCategorias"></canvas>
+        <div class="chart-container">
+            <div id="graficoCategorias"></div>
         </div>
     </div>
 
@@ -206,12 +212,11 @@ require_once 'templates/header.php';
     <div class="card">
         <h2><i class="fas fa-balance-scale"></i> Comparación: Origen de Reservas</h2>
         <p style="color: #6c757d; font-size: 0.95em;">Reservas realizadas por el usuario (cliente) vs. registradas por administrador</p>
-        <div class="chart-container" style="position: relative; height:300px; width:100%;">
-            <canvas id="graficoOrigenReservas"></canvas>
+        <div class="chart-container">
+            <div id="graficoOrigenReservas"></div>
         </div>
     </div>
 </div>
-
 
 <?php 
 // 4. Incluir el footer

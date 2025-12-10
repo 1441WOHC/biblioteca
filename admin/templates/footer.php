@@ -1,5 +1,6 @@
 <script>
     (function() {
+        
         // Obtener IDs actuales al cargar la página
         let lastLibroId = 0;
         let lastPcId = 0;
@@ -79,9 +80,12 @@
         inicializar();
 
     })();
+
+    
 </script>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <script src="js/admin_main.js"></script>
 
 <?php if (isset($activePage) && $activePage === 'estadisticas'): ?>
     <script src="js/estadisticas.js"></script>

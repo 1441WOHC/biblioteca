@@ -4,7 +4,7 @@ require_once '../config/database.php';
 
 // Si el bibliotecario ya tiene una sesión activa, lo redirigimos al dashboard.
 if (isset($_SESSION['bibliotecario'])) {
-    header('Location: dashboard.php');
+    header('Location: nuevareserva.php');
     exit;
 }
 
@@ -63,7 +63,7 @@ if (!empty($cedula)) {
 
                 // Creamos la sesión del bibliotecario y redirigimos.
                 $_SESSION['bibliotecario'] = $bibliotecario;
-                header('Location: dashboard.php');
+                header('Location: nuevareserva.php');
                 exit;
             } else {
                 // LOGIN FALLIDO

@@ -31,8 +31,11 @@ $offset = ($pagina - 1) * $registros_por_pagina;
 $whereConditions = [];
 $params = [];
 if (!empty($busqueda)) {
-    $whereConditions[] = "(l.titulo LIKE :busqueda OR l.autor LIKE :busqueda OR l.codigo_unico LIKE :busqueda)";
-    $params[':busqueda'] = '%' . $busqueda . '%';
+    $whereConditions[] = "(l.titulo LIKE :busqueda_titulo OR l.autor LIKE :busqueda_autor OR l.codigo_unico LIKE :busqueda_codigo)";
+    $busquedaParam = '%' . $busqueda . '%';
+    $params[':busqueda_titulo'] = $busquedaParam;
+    $params[':busqueda_autor'] = $busquedaParam;
+    $params[':busqueda_codigo'] = $busquedaParam;
 }
 if (!empty($categoria_filtro)) {
     $whereConditions[] = "l.id_categoria = :categoria_filtro";
@@ -649,10 +652,6 @@ switch ($libro['disponible']) {
 
 
 <script>
-    const menuToggle = document.getElementById('menuToggle'), sidebar = document.getElementById('sidebar'), mainWrapper = document.getElementById('mainWrapper'), sidebarOverlay = document.getElementById('sidebarOverlay');
-    menuToggle.addEventListener('click', function() { window.innerWidth <= 768 ? (sidebar.classList.toggle('mobile-open'), sidebarOverlay.classList.toggle('active')) : (sidebar.classList.toggle('collapsed'), mainWrapper.classList.toggle('expanded')); });
-    sidebarOverlay.addEventListener('click', function() { sidebar.classList.remove('mobile-open'); sidebarOverlay.classList.remove('active'); });
-
     // Funciones para modales
     function abrirModal(modalId) {
         const modal = document.getElementById(modalId);

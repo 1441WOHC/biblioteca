@@ -126,44 +126,7 @@ require_once 'templates/header.php';
     </div>
 
    <script>
-    // Toggle sidebar functionality
-    const menuToggle = document.getElementById('menuToggle');
-    const sidebar = document.getElementById('sidebar');
-    const mainWrapper = document.getElementById('mainWrapper');
-    const sidebarOverlay = document.getElementById('sidebarOverlay');
-
-    menuToggle.addEventListener('click', function() {
-        if (window.innerWidth <= 768) {
-            sidebar.classList.toggle('mobile-open');
-            sidebarOverlay.classList.toggle('active');
-        } else {
-            sidebar.classList.toggle('collapsed');
-            mainWrapper.classList.toggle('expanded');
-        }
-    });
-
-    sidebarOverlay.addEventListener('click', function() {
-        sidebar.classList.remove('mobile-open');
-        sidebarOverlay.classList.remove('active');
-    });
-
-    window.addEventListener('resize', function() {
-        if (window.innerWidth > 768) {
-            sidebar.classList.remove('mobile-open');
-            sidebarOverlay.classList.remove('active');
-        }
-    });
-
-    document.querySelectorAll('.sidebar-menu a').forEach(link => {
-        link.addEventListener('click', function(e) {
-            document.querySelectorAll('.sidebar-menu a').forEach(l => l.classList.remove('active'));
-            this.classList.add('active');
-            if (window.innerWidth <= 768) {
-                sidebar.classList.remove('mobile-open');
-                sidebarOverlay.classList.remove('active');
-            }
-        });
-    });
+   
 
     let searchTimeout;
     

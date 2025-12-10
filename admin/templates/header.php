@@ -1,10 +1,6 @@
 <?php
-
 require_once '../includes/security.php'; 
-
-// Generamos el token para que esté disponible en toda la página
 generate_csrf_token();
-
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -24,11 +20,11 @@ generate_csrf_token();
 <body>
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <h2 style="display: flex; align-items: center; gap: 10px;;"><img style="height: 40px;" src="../img/up.png" alt="Logo UP"> Biblioteca</h2>
+            <h2 style="display: flex; align-items: center; gap: 10px;;"><img style="height: 40px;" src="../img/sb.jpg" alt="Logo UP"> Biblioteca</h2>
             <p>Sistema de Gestión</p>
         </div>
         <ul class="sidebar-menu">
-            <li><a style=" padding: 10px;" href="dashboard.php" class="<?php echo ($activePage === 'dashboard') ? 'active' : ''; ?>"><i class="fas fa-tachometer-alt" style=" margin-right: 8px;"></i> Dashboard</a></li>
+            <li><a style=" padding: 10px;" href="nuevareserva.php" class="<?php echo ($activePage === 'nuevareserva') ? 'active' : ''; ?>"><i class="fas fa-tachometer-alt" style=" margin-right: 8px;"></i> Nueva Reserva</a></li>
             <li><a style=" padding: 10px;" href="usuarios.php" class="<?php echo ($activePage === 'usuarios') ? 'active' : ''; ?>"><i class="fas fa-users" style=" margin-right: 8px;"></i> Usuarios</a></li>
             <li><a style=" padding: 10px;" href="libros.php" class="<?php echo ($activePage === 'libros') ? 'active' : ''; ?>"><i class="fas fa-book" style=" margin-right: 8px;"></i> Gestión Libros</a></li>
             <li><a style=" padding: 10px;" href="computadoras.php" class="<?php echo ($activePage === 'computadoras') ? 'active' : ''; ?>"><i class="fas fa-laptop" style=" margin-right: 8px;"></i> Gestión PC</a></li>
@@ -41,8 +37,8 @@ generate_csrf_token();
     </aside>
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
     <div class="main-wrapper" id="mainWrapper">
-        <div class="top-header">
-            <button class="menu-toggle" id="menuToggle"><i class="fas fa-bars"></i><span>Menu</span></button>
+        <div class="top-header" style="border-radius: 8px;">
+            <button class="menu-toggle" id="menuToggle"><i class="fas fa-bars"></i></button>
             <div class="user-info">
                 <div class="user-avatar"><?php if (isset($esAdministrador) && $esAdministrador): ?><i class="fas fa-user-shield"></i><?php else: ?><i class="fas fa-user"></i><?php endif; ?></div>
                 <div><strong><?php echo htmlspecialchars($_SESSION['bibliotecario']['nombre_completo']); ?></strong><div style="font-size: 0.9em; color: #666;">Bibliotecario</div></div>
