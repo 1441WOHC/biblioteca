@@ -13,61 +13,13 @@ $esAdministrador = isset($_SESSION['bibliotecario']['es_administrador']) && $_SE
 $pageTitle = 'Estadísticas y Reportes';
 $activePage = 'estadisticas';
 $pageStyles = '
-<style>
- /* Estilos de notificación */
-.simple-toast {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background-color: var(--bg-primary, #ffffff);
-    color: var(--text-primary, #333333);
-    padding: 16px 20px;
-    box-shadow: var(--shadow-lg, 0 5px 15px rgba(0, 0, 0, 0.1));
-    z-index: 99999;
-    min-width: 320px;
-    border-left: 5px solid #4facfe;
-    animation: slideInRight 0.4s ease-out;
-}
-.simple-toast strong {
-    display: block;
-    font-size: 1em;
-    font-weight: 700;
-    margin-bottom: 5px;
-    color: var(--text-primary, #333333);
-}
-.simple-toast small {
-    font-size: 0.9em;
-    opacity: 0.85;
-    color: var(--text-secondary, #6c757d);
-}
-@keyframes slideInRight {
-    from {
-        transform: translateX(110%);
-        opacity: 0;
-    }
-    to {
-        transform: translateX(0);
-        opacity: 1;
-    }
-}
-.simple-toast.hide {
-    animation: slideOutRight 0.4s ease-in forwards;
-}
-@keyframes slideOutRight {
-    to {
-        transform: translateX(110%);
-        opacity: 0;
-    }
-}
-
-/* Ajuste para que los gráficos de ApexCharts se vean bien */
-.chart-container {
-    position: relative;
-    width: 100%;
-}
-    
-</style>
-';
+   <style>
+   .chart-container {
+       position: relative;
+       width: 100%;
+   }
+   </style>
+   ';
 
 // 3. Incluir el header
 require_once 'templates/header.php'; 

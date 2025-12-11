@@ -9,6 +9,7 @@ generate_csrf_token();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo isset($pageTitle) ? htmlspecialchars($pageTitle) . ' - Biblioteca' : 'Administración - Biblioteca'; ?></title>
     <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/components.css"> <!-- ✅ NUEVO -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <?php
     // Imprimir estilos específicos de la página si están definidos
@@ -20,7 +21,7 @@ generate_csrf_token();
 <body>
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <h2 style="display: flex; align-items: center; gap: 10px;;"><img style="height: 40px;" src="../img/sb.jpg" alt="Logo UP"> Biblioteca</h2>
+            <h2 style="display: flex; align-items: center; gap: 10px;"><img style="height: 40px;" src="../img/sb.jpg" alt="Logo UP"> Biblioteca</h2>
             <p>Sistema de Gestión</p>
         </div>
         <ul class="sidebar-menu">
@@ -44,14 +45,13 @@ generate_csrf_token();
                 <div><strong><?php echo htmlspecialchars($_SESSION['bibliotecario']['nombre_completo']); ?></strong><div style="font-size: 0.9em; color: #666;">Bibliotecario</div></div>
             </div>
         </div>
-
-        <div class="container" style="margin-top: 20px;">
-            <?php if (isset($_SESSION['mensaje_flash'])): ?>
-                <div class="alert alert-success"><?php echo $_SESSION['mensaje_flash']; ?></div>
-                <?php unset($_SESSION['mensaje_flash']); ?>
-            <?php endif; ?>
-            <?php if (isset($_SESSION['error_flash'])): ?>
-                <div class="alert alert-danger"><?php echo $_SESSION['error_flash']; ?></div>
-                <?php unset($_SESSION['error_flash']); ?>
-            <?php endif; ?>
-        </div>
+    <div class="container" style="margin-top: 20px;">
+        <?php if (isset($_SESSION['mensaje_flash'])): ?>
+            <div class="alert alert-success"><?php echo $_SESSION['mensaje_flash']; ?></div>
+            <?php unset($_SESSION['mensaje_flash']); ?>
+        <?php endif; ?>
+        <?php if (isset($_SESSION['error_flash'])): ?>
+            <div class="alert alert-danger"><?php echo $_SESSION['error_flash']; ?></div>
+            <?php unset($_SESSION['error_flash']); ?>
+        <?php endif; ?>
+    </div>

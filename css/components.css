@@ -1,0 +1,605 @@
+
+/* ===================================================================
+   COMPONENTS.CSS - Estilos de componentes reutilizables
+   Sistema de Gestión de Biblioteca
+   =================================================================== */
+/* ===================================================================
+MODALES - Usado en 8+ páginas
+=================================================================== */
+.modal {
+display: none;
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+z-index: 1000;
+align-items: center;
+justify-content: center;
+background-color: rgba(0, 0, 0, 0.5);
+animation: fadeIn 0.3s ease;
+}
+.modal.show {
+display: flex;
+}
+@keyframes fadeIn {
+from { opacity: 0; }
+to { opacity: 1; }
+}
+.modal-overlay {
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+background-color: rgba(0, 0, 0, 0.5);
+z-index: 999;
+opacity: 0;
+transition: opacity 0.3s ease;
+}
+.modal-overlay.show {
+opacity: 1;
+}
+.modal-content {
+background: var(--bg-primary);
+border-radius: var(--border-radius-lg);
+padding: var(--spacing-xl);
+width: 90%;
+max-width: 700px;
+max-height: 90vh;
+overflow-y: auto;
+position: relative;
+animation: slideIn 0.3s ease;
+box-shadow: var(--shadow-lg);
+z-index: 1001;
+transform: scale(0.9);
+opacity: 0;
+transition: all 0.3s ease;
+}
+.modal.show .modal-content {
+transform: scale(1);
+opacity: 1;
+}
+@keyframes slideIn {
+from {
+transform: translateY(-50px);
+opacity: 0;
+}
+to {
+transform: translateY(0);
+opacity: 1;
+}
+}
+.modal-header {
+display: flex;
+justify-content: space-between;
+align-items: center;
+margin-bottom: var(--spacing-lg);
+padding-bottom: var(--spacing-md);
+border-bottom: 1px solid var(--border-color);
+}
+.modal-header h2,
+.modal-header h3 {
+margin: 0;
+color: var(--text-primary);
+font-size: 1.4em;
+display: flex;
+align-items: center;
+gap: 10px;
+}
+.modal-header h3 i {
+color: #dc3545;
+}
+.modal-content p {
+color: #666;
+line-height: 1.6;
+margin-bottom: 25px;
+}
+.close-modal {
+background: none;
+border: none;
+font-size: 1.5em;
+color: var(--text-secondary);
+cursor: pointer;
+padding: 5px;
+border-radius: var(--border-radius);
+transition: all var(--transition);
+}
+.close-modal:hover {
+color: #dc3545;
+background-color: var(--light-gray);
+}
+.modal-actions {
+display: flex;
+gap: 10px;
+justify-content: flex-end;
+margin-top: var(--spacing-lg);
+}
+.modal-actions button {
+padding: 10px 20px;
+border: none;
+border-radius: 6px;
+cursor: pointer;
+font-size: 14px;
+font-weight: 500;
+transition: all 0.3s ease;
+display: inline-flex;
+align-items: center;
+gap: 8px;
+}
+.modal-form {
+display: flex;
+flex-direction: column;
+gap: var(--spacing-lg);
+}
+/* ===================================================================
+WIZARD / STEPPER - Usado en 5+ páginas
+=================================================================== */
+.step-indicators {
+display: flex;
+justify-content: center;
+gap: 20px;
+margin-bottom: var(--spacing-lg);
+border-bottom: 1px solid var(--border-color);
+padding-bottom: var(--spacing-md);
+}
+.step-indicator {
+color: var(--text-secondary);
+padding: 5px 10px;
+border-bottom: 3px solid transparent;
+font-weight: 500;
+transition: all var(--transition);
+}
+.step-indicator.active {
+color: var(--primary-color);
+border-bottom-color: var(--primary-color);
+font-weight: 700;
+}
+.step-indicator.completed {
+color: #28a745;
+}
+.step-content {
+display: none;
+animation: fadeInStep 0.5s;
+}
+.step-content.active {
+display: block;
+}
+@keyframes fadeInStep {
+from {
+opacity: 0;
+transform: translateY(10px);
+}
+to {
+opacity: 1;
+transform: translateY(0);
+}
+}
+.step-navigation {
+display: flex;
+justify-content: space-between;
+margin-top: var(--spacing-lg);
+gap: 10px;
+}
+/* ===================================================================
+FORMULARIOS AVANZADOS
+=================================================================== */
+.form-section {
+margin-bottom: var(--spacing-lg);
+}
+.form-section-title {
+font-weight: 600;
+color: var(--text-primary);
+margin-bottom: var(--spacing-md);
+font-size: 1.05em;
+padding-bottom: var(--spacing-xs);
+border-bottom: 1px solid var(--border-color);
+}
+.form-separator {
+border: none;
+border-top: 1px solid var(--border-color);
+margin: var(--spacing-lg) 0;
+}
+.hidden-fields {
+display: none;
+}
+.user-found-info {
+background-color: var(--light-gray);
+padding: var(--spacing-md);
+border-radius: var(--border-radius);
+border-left: 5px solid var(--primary-color);
+margin-bottom: var(--spacing-md);
+}
+.user-found-info p {
+margin: 0;
+padding: 4px 0;
+color: var(--text-primary);
+}
+.user-found-info strong {
+color: var(--text-primary);
+}
+/* ===================================================================
+LOADING STATES - Spinners y estados de carga
+=================================================================== */
+.btn-primary:disabled,
+.btn-secondary:disabled {
+background-color: #6c757d;
+border-color: #6c757d;
+cursor: not-allowed;
+opacity: 0.7;
+pointer-events: none;
+}
+.spinner {
+width: 16px;
+height: 16px;
+border: 2px solid transparent;
+border-top: 2px solid #ffffff;
+border-radius: 50%;
+animation: spin 1s linear infinite;
+display: inline-block;
+vertical-align: middle;
+margin-right: 5px;
+}
+@keyframes spin {
+0% { transform: rotate(0deg); }
+100% { transform: rotate(360deg); }
+}
+/* ===================================================================
+TOAST NOTIFICATIONS - Usado en 4+ páginas
+=================================================================== */
+.simple-toast {
+position: fixed;
+top: 20px;
+right: 20px;
+background-color: var(--bg-primary, #ffffff);
+color: var(--text-primary, #333333);
+padding: 16px 20px;
+box-shadow: var(--shadow-lg, 0 5px 15px rgba(0, 0, 0, 0.1));
+z-index: 99999;
+min-width: 320px;
+border-left: 5px solid #4facfe;
+border-radius: var(--border-radius);
+animation: slideInRight 0.4s ease-out;
+}
+.simple-toast strong {
+display: block;
+font-size: 1em;
+font-weight: 700;
+margin-bottom: 5px;
+color: var(--text-primary, #333333);
+}
+.simple-toast small {
+font-size: 0.9em;
+opacity: 0.85;
+color: var(--text-secondary, #6c757d);
+}
+@keyframes slideInRight {
+from {
+transform: translateX(110%);
+opacity: 0;
+}
+to {
+transform: translateX(0);
+opacity: 1;
+}
+}
+.simple-toast.hide {
+animation: slideOutRight 0.4s ease-in forwards;
+}
+@keyframes slideOutRight {
+to {
+transform: translateX(110%);
+opacity: 0;
+}
+}
+/* Variantes de toast por tipo */
+.simple-toast.libro {
+border-left-color: #4facfe;
+}
+.simple-toast.computadora {
+border-left-color: #00d2ff;
+}
+/* ===================================================================
+BADGES ADICIONALES
+=================================================================== */
+.badge-primary {
+background-color: #007bff;
+color: white;
+}
+.badge-secondary {
+background-color: #6c757d;
+color: white;
+}
+/* ===================================================================
+BOTONES ADICIONALES - Variantes no cubiertas en style.css
+=================================================================== */
+.btn-warning {
+background-color: #ffc107;
+color: #212529;
+border: none;
+}
+.btn-warning:hover {
+background-color: #e0a800;
+}
+.btn-danger {
+background-color: #dc3545;
+color: white;
+border: none;
+}
+.btn-danger:hover {
+background-color: #c82333;
+}
+.btn-success {
+background-color: #28a745;
+color: white;
+border: none;
+}
+.btn-success:hover {
+background-color: #218838;
+}
+.btn-secondary {
+background-color: #6c757d;
+color: white;
+border: none;
+}
+.btn-secondary:hover {
+background-color: #5a6268;
+}
+/* ===================================================================
+TABLAS - Estilos adicionales para las páginas admin
+=================================================================== */
+.action-buttons {
+display: flex;
+gap: 5px;
+flex-wrap: wrap;
+}
+.action-buttons .btn {
+padding: 6px 10px;
+font-size: 0.9em;
+}
+/* ===================================================================
+TABS - Pestañas (usado en administracion.php)
+=================================================================== */
+.tabs-container {
+background: white;
+border-radius: var(--border-radius);
+overflow: hidden;
+margin-bottom: var(--spacing-lg);
+box-shadow: var(--shadow-sm);
+}
+.tabs-header {
+display: flex;
+border-bottom: 2px solid var(--border-color);
+background: var(--light-gray);
+}
+.tab-button {
+flex: 1;
+padding: var(--spacing-md) var(--spacing-lg);
+background: none;
+border: none;
+cursor: pointer;
+font-size: 1em;
+font-weight: 500;
+color: var(--text-secondary);
+transition: all var(--transition);
+position: relative;
+}
+.tab-button:hover {
+background: rgba(79, 172, 254, 0.1);
+color: var(--primary-color);
+}
+.tab-button.active {
+color: var(--primary-color);
+background: white;
+}
+.tab-button.active::after {
+content: '';
+position: absolute;
+bottom: -2px;
+left: 0;
+right: 0;
+height: 2px;
+background: var(--primary-color);
+}
+.tab-content {
+display: none;
+padding: var(--spacing-lg);
+animation: fadeIn 0.3s ease;
+}
+.tab-content.active {
+display: block;
+}
+/* ===================================================================
+CHECKBOXES (usado en administracion.php)
+=================================================================== */
+.checkbox-group {
+max-height: 200px;
+overflow-y: auto;
+border: 1px solid var(--border-color);
+border-radius: var(--border-radius);
+padding: var(--spacing-sm);
+}
+.checkbox-item {
+padding: var(--spacing-xs);
+}
+.checkbox-item label {
+display: flex;
+align-items: center;
+cursor: pointer;
+}
+.checkbox-item input[type="checkbox"] {
+margin-right: var(--spacing-sm);
+}
+/* ===================================================================
+PASSWORD RULES (usado en administracion.php)
+=================================================================== */
+.password-rules {
+margin-top: 10px;
+font-size: 0.9em;
+}
+.password-rules div {
+transition: color 0.3s ease;
+padding: 2px 0;
+}
+.password-rules div.valid {
+color: #28a745;
+}
+.password-rules div.invalid {
+color: #dc3545;
+}
+/* ===================================================================
+ALERTAS - Extensiones de las alertas base
+=================================================================== */
+.alert {
+padding: var(--spacing-md) var(--spacing-lg);
+border-radius: var(--border-radius);
+margin-bottom: var(--spacing-lg);
+border: 1px solid transparent;
+display: flex;
+align-items: center;
+gap: 10px;
+}
+.alert i {
+font-size: 1.2em;
+}
+.alert-success {
+background-color: #d4edda;
+color: #155724;
+border-color: #c3e6cb;
+}
+.alert-danger {
+background-color: #f8d7da;
+color: #721c24;
+border-color: #f5c6cb;
+}
+.alert-warning {
+background-color: #fff3cd;
+color: #856404;
+border-color: #ffeaa7;
+}
+.alert-info {
+background-color: #d1ecf1;
+color: #0c5460;
+border-color: #bee5eb;
+}
+/* ===================================================================
+FORM CARDS (usado en varias páginas)
+=================================================================== */
+.form-card {
+scroll-margin-top: 80px;
+}
+/* ===================================================================
+SEARCH SECTION (usado en libros.php y usuarios.php)
+=================================================================== */
+.search-section {
+background: #f8f9fa;
+padding: 20px;
+border-radius: 8px;
+margin-bottom: 20px;
+}
+.search-row {
+display: grid;
+grid-template-columns: 2fr 1fr 1fr auto;
+gap: 15px;
+align-items: end;
+}
+.clear-search {
+color: #dc3545;
+text-decoration: none;
+font-size: 0.9em;
+}
+.clear-search:hover {
+text-decoration: underline;
+}
+/* ===================================================================
+PAGINATION (usado en libros.php)
+=================================================================== */
+.pagination {
+display: flex;
+justify-content: center;
+align-items: center;
+gap: 10px;
+margin-top: 20px;
+flex-wrap: wrap;
+}
+.pagination a,
+.pagination span {
+padding: 8px 12px;
+border: 1px solid #ddd;
+text-decoration: none;
+color: #333;
+border-radius: 4px;
+transition: all var(--transition);
+}
+.pagination a:hover {
+background-color: #f5f5f5;
+}
+.pagination .current {
+background-color: #007bff;
+color: white;
+border-color: #007bff;
+}
+.pagination .disabled {
+color: #ccc;
+pointer-events: none;
+}
+.results-info {
+text-align: center;
+margin: 15px 0;
+color: #666;
+}
+/* ===================================================================
+CHART CONTAINERS (usado en estadisticas.php)
+=================================================================== */
+.chart-container {
+position: relative;
+width: 100%;
+min-height: 300px;
+}
+/* ===================================================================
+RESPONSIVE - Ajustes para móviles
+=================================================================== */
+@media (max-width: 768px) {
+.modal-content {
+width: 95%;
+padding: var(--spacing-lg);
+}
+.step-navigation {
+    flex-direction: column;
+    gap: 10px;
+}
+
+.step-navigation .btn {
+    width: 100%;
+}
+
+.modal-actions {
+    flex-direction: column;
+}
+
+.modal-actions button {
+    width: 100%;
+}
+
+.search-row {
+    grid-template-columns: 1fr;
+    gap: 10px;
+}
+
+.tabs-header {
+    flex-direction: column;
+}
+
+.tab-button {
+    border-bottom: 1px solid var(--border-color);
+}
+
+.action-buttons {
+    flex-direction: column;
+}
+
+.action-buttons .btn {
+    width: 100%;
+    margin-bottom: 5px;
+}
+}

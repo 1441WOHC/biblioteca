@@ -184,27 +184,9 @@ foreach ($todasCarreras as $carrera) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reservar Computadora - Biblioteca</title>
+    <title>Reservar ... - Biblioteca</title>
     <link rel="stylesheet" href="../css/style.css">
-    <style>
-        .alert-success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; padding: var(--spacing-sm); border-radius: var(--border-radius); margin-bottom: var(--spacing-md); }
-        .alert-danger { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; padding: var(--spacing-sm); border-radius: var(--border-radius); margin-bottom: var(--spacing-md); }
-        .btn-primary { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
-        .btn-primary:disabled { background-color: #6c757d; border-color: #6c757d; cursor: not-allowed; opacity: 0.7; }
-        .spinner { width: 16px; height: 16px; border: 2px solid transparent; border-top: 2px solid #ffffff; border-radius: 50%; animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .hidden-fields, .step-content { display: none; }
-        .step-content.active { display: block; animation: fadeIn 0.5s; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .step-navigation { display: flex; justify-content: space-between; margin-top: var(--spacing-lg); }
-        .step-indicators { display: flex; justify-content: center; gap: 20px; margin-bottom: var(--spacing-lg); border-bottom: 1px solid var(--border-color); padding-bottom: var(--spacing-md); }
-        .step-indicator { color: var(--text-secondary); padding: 5px 10px; border-bottom: 3px solid transparent; font-weight: 500; }
-        .step-indicator.active { color: var(--primary-color); border-bottom-color: var(--primary-color); font-weight: 700; }
-        .step-indicator.completed { color: #28a745; }
-        .user-found-info { background-color: var(--light-gray); padding: var(--spacing-md); border-radius: var(--border-radius); border-left: 5px solid var(--primary-color); margin-bottom: var(--spacing-md); }
-        .user-found-info p { margin: 0; }
-        @media (max-width: 768px) { .step-navigation { flex-direction: column; gap: 10px; } .step-navigation .btn { width: 100%; } }
-    </style>
+    <link rel="stylesheet" href="../css/components.css">
 </head>
 <body>
     <div class="header">
